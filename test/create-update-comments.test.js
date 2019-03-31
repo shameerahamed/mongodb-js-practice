@@ -52,7 +52,14 @@ describe("Create/Update Comments", async () => {
     expect(postCommentResult.insertedCount).toBe(1)
     expect(postCommentResult.insertedId).not.toBe(null)
 
+    // const commentsCollection = await global.mflixClient
+    //   .db("mflix")
+    //   .collection("comments");
+    // const insertResult = await commentsCollection.findOne({_id: postCommentResult.insertedId});
+    // console.log(insertResult);
+
     const martianComments = (await MoviesDAO.getMovieByID(movieId)).comments
+    // console.log(martianComments);
 
     expect(martianComments[0]._id).toEqual(postCommentResult.insertedId)
     expect(martianComments[0].text).toEqual(comment.text)

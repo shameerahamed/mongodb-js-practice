@@ -7,6 +7,7 @@ describe("User Report", async () => {
 
   test("Should return exactly twenty results", async () => {
     const userReport = await CommentsDAO.mostActiveCommenters()
+    console.log(userReport)
     expect(userReport.length).toBe(20)
   })
 
