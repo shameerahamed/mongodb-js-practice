@@ -61,10 +61,7 @@ export default class MoviesDAO {
       // and _id. Do not put a limit in your own implementation, the limit
       // here is only included to avoid sending 46000 documents down the
       // wire.
-      cursor = await movies.find(
-        { countries: { $in: countries } },
-        { projection: { title: 1 } },
-      ) //.limit(1)
+      cursor = await movies.find({countries : {$in: countries}}, {projection : {title : 1}})
     } catch (e) {
       console.error(`Unable to issue find command, ${e}`)
       return []
@@ -93,7 +90,7 @@ export default class MoviesDAO {
    * @returns {QueryParams} The QueryParams for cast search
    */
   static castSearchQuery(cast) {
-    const searchCast = Array.isArray(cast) ? cast : Array(cast)
+    const searchCast = Array.isArray(cast) ? cast : cast.split(", ")
 
     const query = { cast: { $in: searchCast } }
     const project = {}
@@ -115,11 +112,11 @@ export default class MoviesDAO {
     MongoDB for movies with that genre.
     */
 
-    const searchGenre = Array.isArray(genre) ? genre : Array(genre)
+    const searchGenre = Array.isArray(genre) ? genre : genre.split(", ")
 
     // TODO Ticket: Text and Subfield Search
     // Construct a query that will search for the chosen genre.
-    const query = { genres: { $in: searchGenre } }
+    const query = {genres : {$in : searchGenre}}
     const project = {}
     const sort = DEFAULT_SORT
 
@@ -143,7 +140,7 @@ export default class MoviesDAO {
       throw new Error("Must specify cast members to filter by.")
     }
     const matchStage = { $match: filters }
-    const sortStage = { $sort: { "tomatoes.viewer.rating": -1 } }
+    const sortStage = { $sort: { "tomatoes.viewer.numReviews": -1 } }
     const countingPipeline = [matchStage, sortStage, { $count: "count" }]
     const skipStage = { $skip: moviesPerPage * page }
     const limitStage = { $limit: moviesPerPage }
@@ -197,9 +194,6 @@ export default class MoviesDAO {
     const queryPipeline = [
       matchStage,
       sortStage,
-      skipStage,
-      limitStage,
-      facetStage,
       // TODO Ticket: Faceted Search
       // Add the stages to queryPipeline in the correct order.
     ]
@@ -265,7 +259,7 @@ export default class MoviesDAO {
 
     // TODO Ticket: Paging
     // Use the cursor to only return the movies that belong on the current page
-    const displayCursor = cursor.limit(moviesPerPage).skip(moviesPerPage * page)
+    const displayCursor = cursor.limit(moviesPerPage)
 
     try {
       const moviesList = await displayCursor.toArray()
@@ -302,28 +296,9 @@ export default class MoviesDAO {
       const pipeline = [
         {
           $match: {
-            _id: id,
-          },
-        },
-        {
-          $lookup: {
-            from: "comments",
-            let: {
-              id: "$_id",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$movie_id", "$$id"],
-                  },
-                },
-              },
-              { $sort: { date: -1 } },
-            ],
-            as: "comments",
-          },
-        },
+            _id: ObjectId(id)
+          }
+        }
       ]
       return await movies.aggregate(pipeline).next()
     } catch (e) {
@@ -337,9 +312,6 @@ export default class MoviesDAO {
       // TODO Ticket: Error Handling
       // Catch the InvalidId error by string matching, and then handle it.
       console.error(`Something went wrong in getMovieByID: ${e}`)
-      if (e.InvalidId) {
-        return null
-      }
       throw e
     }
   }

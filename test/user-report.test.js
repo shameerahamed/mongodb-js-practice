@@ -1,13 +1,12 @@
 import CommentsDAO from "../src/dao/commentsDAO"
 
-describe("User Report", async () => {
+describe("User Report", () => {
   beforeAll(async () => {
     await CommentsDAO.injectDB(global.mflixClient)
   })
 
   test("Should return exactly twenty results", async () => {
     const userReport = await CommentsDAO.mostActiveCommenters()
-    console.log(userReport)
     expect(userReport.length).toBe(20)
   })
 
@@ -16,7 +15,7 @@ describe("User Report", async () => {
     const topCommenter = userReport[0]
     expect(topCommenter).toEqual({
       _id: "roger_ashton-griffiths@gameofthron.es",
-      count: 909,
+      count: 331,
     })
   })
 })
